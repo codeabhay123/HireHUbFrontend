@@ -10,15 +10,15 @@ export default defineConfig({
     },
   },
   server: {
-    host: true, // binds to 0.0.0.0 for external access
+    host: true,           // binds to 0.0.0.0 for external access
     port: 5173,
     strictPort: false,
-    allowedHosts: ['hirehubfrontend-1.onrender.com'], // allow Render domain
+    allowedHosts: "all",  // allow any host
   },
   preview: {
-    host: true, // binds to 0.0.0.0
+    host: true,                 // binds to 0.0.0.0
     port: process.env.PORT || 4173, // use Render port
     strictPort: false,
-    allowedHosts: ['hirehubfrontend-1.onrender.com'], // allow Render domain
+    allowedHosts: "all",        // allow any host
   },
 });
