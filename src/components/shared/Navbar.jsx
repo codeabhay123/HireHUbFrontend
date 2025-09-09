@@ -1,8 +1,8 @@
-import React from "react";
+import React, { useState } from "react";
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
 import { Button } from "../ui/button";
 import { Avatar, AvatarImage, AvatarFallback } from "../ui/avatar";
-import { LogOut, User2 } from "lucide-react";
+import { LogOut, User2, Menu, X } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import axios from "axios";
@@ -13,7 +13,8 @@ import { toast } from "sonner";
 const Navbar = () => {
   const { user } = useSelector((store) => store.auth);
   const dispatch = useDispatch();
-  const navigate = useNavigate();  // ✅ useNavigate
+  const navigate = useNavigate();
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   // 🔹 Logout handler
   const logoutHandler = async () => {
@@ -23,7 +24,7 @@ const Navbar = () => {
       });
       if (res.data.success) {
         dispatch(setUser(null));
-        navigate("/"); // ✅ redirect after logout
+        navigate("/");
         toast.success(res.data.message);
       }
     } catch (error) {
@@ -32,21 +33,27 @@ const Navbar = () => {
     }
   };
 
+  // Close mobile menu when clicking on a link
+  const closeMobileMenu = () => {
+    setIsMobileMenuOpen(false);
+  };
+
   return (
-    <div className="bg-white-100 shadow-sm">
-      <div className="flex items-center justify-between mx-auto max-w-7xl h-16 px-4 ">
+    <div className="bg-white shadow-sm relative">
+      <div className="flex items-center justify-between mx-auto max-w-7xl h-16 px-4">
         
         {/* 🔹 Logo Section */}
         <div className="flex items-center gap-2">
           <h1
-            className="text-2xl font-bold cursor-pointer"
-            onClick={() => navigate("/")} // ✅ use navigate instead of negative
+            className="text-xl md:text-2xl font-bold cursor-pointer"
+            onClick={() => navigate("/")}
           >
             Hire<span className="text-[#7e27f0]">Hub</span>
           </h1>
         </div>
-        {/* 🔹 Navigation Menu */}
-        <ul className="flex font-medium items-center gap-6">
+
+        {/* 🔹 Desktop Navigation Menu - Hidden on mobile */}
+        <ul className="hidden md:flex font-medium items-center gap-6">
           {user && user.role === "recruiter" ? (
             // ✅ Recruiter Menu
             <>
@@ -66,7 +73,6 @@ const Navbar = () => {
                   Jobs
                 </Link>
               </li>
-             
             </>
           ) : (
             // ✅ Student/Visitor Menu
@@ -80,14 +86,13 @@ const Navbar = () => {
                 <Link to="/jobs" className="hover:text-[#e22f2f] transition">
                   Jobs
                 </Link>
-                
               </li>
               <li>
                 <Link to="/browse" className="hover:text-[#e9404b] transition">
                   Browse
                 </Link>
               </li>
-               <li>
+              <li>
                 <Link
                   to="/about"
                   className="hover:text-[#f43d46] transition"
@@ -95,7 +100,7 @@ const Navbar = () => {
                   About
                 </Link>
               </li>
-                  <li>
+              <li>
                 <Link
                   to="/contact"
                   className="hover:text-[#f43d46] transition"
@@ -103,20 +108,20 @@ const Navbar = () => {
                   Support
                 </Link>
               </li>
-                <li>
+              <li>
                 <Link
                   to="/terms"
                   className="hover:text-[#f43d46] transition"
                 >
-                Policy
+                  Policy
                 </Link>
               </li>
             </>
           )}
         </ul>
 
-        {/* 🔹 Right Section (Login/Signup OR Profile Avatar) */}
-        <div className="flex items-center gap-4">
+        {/* 🔹 Right Section - Desktop */}
+        <div className="hidden md:flex items-center gap-4">
           {!user ? (
             // ✅ If NOT logged in → Show Login & Signup
             <>
@@ -210,7 +215,190 @@ const Navbar = () => {
             </Popover>
           )}
         </div>
+
+        {/* 🔹 Mobile Right Section */}
+        <div className="flex md:hidden items-center gap-3">
+          {/* User Avatar (Mobile) */}
+          {user && (
+            <Popover>
+              <PopoverTrigger asChild>
+                <Avatar className="w-8 h-8 cursor-pointer ring-2 ring-gray-200 hover:ring-[#F83002] transition-all duration-200">
+                  <AvatarImage
+                    src={user?.profile?.profilePhoto || user?.profilePic || ""}
+                    alt="Profile"
+                  />
+                  <AvatarFallback className="bg-gradient-to-br from-[#6A38C2] to-[#F83002] text-white font-semibold text-xs">
+                    {user?.fullname || user?.name
+                      ? (user?.fullname || user?.name).charAt(0).toUpperCase()
+                      : "U"}
+                  </AvatarFallback>
+                </Avatar>
+              </PopoverTrigger>
+
+              <PopoverContent className="w-72 p-0 border-0 shadow-xl bg-white rounded-xl overflow-hidden mr-4">
+                <div className="p-4">
+                  {/* Profile Header */}
+                  <div className="flex gap-3 items-center">
+                    <Avatar className="w-12 h-12 ring-2 ring-gray-100">
+                      <AvatarImage
+                        src={
+                          user?.profile?.profilePhoto ||
+                          user?.profilePic ||
+                          "https://github.com/shadcn.png"
+                        }
+                        alt="Profile"
+                      />
+                      <AvatarFallback className="bg-gradient-to-br from-[#6A38C2] to-[#F83002] text-white font-semibold">
+                        {user?.fullname || user?.name
+                          ? (user?.fullname || user?.name)
+                              .charAt(0)
+                              .toUpperCase()
+                          : "U"}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="flex-1">
+                      <h4 className="font-semibold text-gray-900">
+                        {user?.fullname || user?.name || "User"}
+                      </h4>
+                      <p className="text-xs text-gray-600 mt-1">
+                        {user?.profile?.bio ||
+                          user?.email ||
+                          "No information available"}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Profile Actions */}
+                  <div className="mt-4 flex flex-col gap-1">
+                    {user && user.role === "student" && (
+                      <Link to="/profile">
+                        <Button
+                          variant="ghost"
+                          className="w-full justify-start gap-2 py-2 px-3 hover:bg-gray-50 text-gray-700 hover:text-[#6A38C2] transition-all duration-200 rounded-lg text-sm"
+                        >
+                          <User2 size={16} /> View Profile
+                        </Button>
+                      </Link>
+                    )}
+                    <Button
+                      onClick={logoutHandler}
+                      variant="ghost"
+                      className="w-full justify-start gap-2 py-2 px-3 hover:bg-red-50 text-gray-700 hover:text-red-600 transition-all duration-200 rounded-lg text-sm"
+                    >
+                      <LogOut size={16} /> Logout
+                    </Button>
+                  </div>
+                </div>
+              </PopoverContent>
+            </Popover>
+          )}
+
+          {/* Hamburger Menu Button */}
+          <Button
+            variant="ghost"
+            size="sm"
+            className="p-2 hover:bg-gray-100"
+            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+          >
+            {isMobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
+          </Button>
+        </div>
       </div>
+
+      {/* 🔹 Mobile Menu Dropdown */}
+      {isMobileMenuOpen && (
+        <div className="md:hidden absolute top-16 left-0 right-0 bg-white shadow-lg border-t z-50">
+          <div className="px-4 py-4 space-y-4">
+            {/* Navigation Links */}
+            <div className="space-y-3">
+              {user && user.role === "recruiter" ? (
+                // Recruiter Menu
+                <>
+                  <Link
+                    to="/admin/companies"
+                    className="block py-2 px-3 rounded-lg hover:bg-gray-100 transition-colors"
+                    onClick={closeMobileMenu}
+                  >
+                    Companies
+                  </Link>
+                  <Link
+                    to="/admin/jobs"
+                    className="block py-2 px-3 rounded-lg hover:bg-gray-100 transition-colors"
+                    onClick={closeMobileMenu}
+                  >
+                    Jobs
+                  </Link>
+                </>
+              ) : (
+                // Student/Visitor Menu
+                <>
+                  <Link
+                    to="/"
+                    className="block py-2 px-3 rounded-lg hover:bg-gray-100 transition-colors"
+                    onClick={closeMobileMenu}
+                  >
+                    Home
+                  </Link>
+                  <Link
+                    to="/jobs"
+                    className="block py-2 px-3 rounded-lg hover:bg-gray-100 transition-colors"
+                    onClick={closeMobileMenu}
+                  >
+                    Jobs
+                  </Link>
+                  <Link
+                    to="/browse"
+                    className="block py-2 px-3 rounded-lg hover:bg-gray-100 transition-colors"
+                    onClick={closeMobileMenu}
+                  >
+                    Browse
+                  </Link>
+                  <Link
+                    to="/about"
+                    className="block py-2 px-3 rounded-lg hover:bg-gray-100 transition-colors"
+                    onClick={closeMobileMenu}
+                  >
+                    About
+                  </Link>
+                  <Link
+                    to="/contact"
+                    className="block py-2 px-3 rounded-lg hover:bg-gray-100 transition-colors"
+                    onClick={closeMobileMenu}
+                  >
+                    Support
+                  </Link>
+                  <Link
+                    to="/terms"
+                    className="block py-2 px-3 rounded-lg hover:bg-gray-100 transition-colors"
+                    onClick={closeMobileMenu}
+                  >
+                    Policy
+                  </Link>
+                </>
+              )}
+            </div>
+
+            {/* Login/Signup buttons for mobile (when not logged in) */}
+            {!user && (
+              <div className="pt-4 border-t space-y-3">
+                <Link to="/login" onClick={closeMobileMenu}>
+                  <Button
+                    variant="outline"
+                    className="w-full border-gray-300 hover:border-[#F83002] hover:text-[#F83002] transition-all duration-200"
+                  >
+                    Login
+                  </Button>
+                </Link>
+                <Link to="/signup" onClick={closeMobileMenu}>
+                  <Button className="w-full bg-gradient-to-r from-[#6A38C2] to-[#5b30a6] hover:from-[#5b30a6] hover:to-[#4c2890] text-white shadow-lg hover:shadow-xl transition-all duration-200">
+                    Signup
+                  </Button>
+                </Link>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 };
